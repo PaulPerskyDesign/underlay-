@@ -2,6 +2,7 @@ const baselineTogEl = document.getElementById('baselineTog');
 const targetTogEl = document.getElementById('targetTog');
 const baselineSoftEl = document.getElementById('baselineSoft');
 const targetSoftEl = document.getElementById('targetSoft');
+const validationMsgEl = document.getElementById('validationMsg');
 
 const segmentFlexEl = document.getElementById('segmentFlex');
 const crosslinkDensityEl = document.getElementById('crosslinkDensity');
@@ -17,9 +18,20 @@ const slipValEl = document.getElementById('slipVal');
 const poreValEl = document.getElementById('poreVal');
 
 const runAiBtn = document.getElementById('runAiBtn');
+const loadPresetBtn = document.getElementById('loadPresetBtn');
 const engineLogEl = document.getElementById('engineLog');
 const outcomeEl = document.getElementById('outcome');
 const stackPlanEl = document.getElementById('stackPlan');
+const historyEl = document.getElementById('history');
+
+const runIdEl = document.getElementById('runId');
+const goalMatchEl = document.getElementById('goalMatch');
+const confidenceEl = document.getElementById('confidence');
+const riskEl = document.getElementById('risk');
+const progressBarEl = document.getElementById('progressBar');
+const progressLabelEl = document.getElementById('progressLabel');
+
+const runHistory = [];
 
 function bindLiveValue(inputEl, displayEl) {
   const sync = () => {
@@ -45,6 +57,20 @@ function pctGain(from, to) {
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
+}
+
+function validateTargets(target) {
+  const values = Object.values(target);
+  if (values.some((n) => !Number.isFinite(n) || n <= 0)) {
+    return 'All target values must be positive numbers.';
+  }
+  if (target.targetTog >= target.baselineTog) {
+    return 'Target tog must be lower than baseline tog.';
+  }
+  if (target.targetSoft <= target.baselineSoft) {
+    return 'Target softness must be higher than baseline softness.';
+  }
+  return '';
 }
 
 function computeCandidateScore(settings, target) {
@@ -85,15 +111,52 @@ function computeCandidateScore(settings, target) {
 
 function mutate(settings) {
   const next = { ...settings };
-  const keys = Object.keys(next);
-  keys.forEach((key) => {
+  Object.keys(next).forEach((key) => {
     const delta = (Math.random() - 0.5) * 18;
     next[key] = clamp(next[key] + delta, 0, 100);
   });
   return next;
 }
 
-function runAiLoop() {
+function runId() {
+  return `RUN-${Date.now().toString().slice(-6)}`;
+}
+
+function updateHistory(entry) {
+  runHistory.unshift(entry);
+  const preview = runHistory.slice(0, 6).map((r) => {
+    return `${r.id} | ${r.time}\n  tog ${r.tog.toFixed(2)} (${r.togDrop.toFixed(1)}%) | soft ${r.soft.toFixed(1)} (${r.softGain.toFixed(1)}%) | ${r.verdict}`;
+  });
+  historyEl.textContent = preview.join('\n\n');
+}
+
+function setDashboard(metrics) {
+  runIdEl.textContent = metrics.id;
+  goalMatchEl.textContent = `${metrics.goalMatch.toFixed(1)}%`;
+  confidenceEl.textContent = `${metrics.confidence.toFixed(1)}%`;
+  riskEl.textContent = metrics.risk;
+}
+
+function simulateProgress(generations) {
+  let step = 0;
+  progressBarEl.value = 0;
+  progressLabelEl.textContent = 'Initializing surrogate model...';
+  return new Promise((resolve) => {
+    const timer = setInterval(() => {
+      step += 1;
+      const pct = Math.min((step / generations) * 100, 100);
+      progressBarEl.value = pct;
+      progressLabelEl.textContent = `Generation ${step}/${generations}`;
+      if (step >= generations) {
+        clearInterval(timer);
+        progressLabelEl.textContent = 'Optimization complete';
+        resolve();
+      }
+    }, 25);
+  });
+}
+
+async function runAiLoop() {
   const target = {
     baselineTog: Number(baselineTogEl.value),
     targetTog: Number(targetTogEl.value),
@@ -101,12 +164,17 @@ function runAiLoop() {
     targetSoft: Number(targetSoftEl.value)
   };
 
-  if (Object.values(target).some((n) => !Number.isFinite(n) || n <= 0)) {
-    engineLogEl.textContent = 'Invalid target values. Please enter positive numbers.';
+  const validationError = validateTargets(target);
+  validationMsgEl.textContent = validationError;
+  if (validationError) {
+    engineLogEl.textContent = `Validation failed: ${validationError}`;
     return;
   }
 
   const generations = clamp(Number(aiBudgetEl.value), 5, 80);
+  runAiBtn.disabled = true;
+
+  await simulateProgress(generations);
 
   let candidate = {
     segmentFlex: Number(segmentFlexEl.value),
@@ -124,7 +192,7 @@ function runAiLoop() {
   const logs = [
     'AI pipeline started: surrogate model + multi-objective optimizer',
     `Goal: Tog ${target.baselineTog} → ${target.targetTog}, Softness ${target.baselineSoft} → ${target.targetSoft}`,
-    `Running ${generations} generations of candidate chemistry/structure exploration...`
+    `Exploring ${generations} generations over atom-level chemistry and microstructure controls...`
   ];
 
   for (let i = 1; i <= generations; i += 1) {
@@ -134,29 +202,37 @@ function runAiLoop() {
     if (scored.score > best.score) {
       best = { settings: { ...candidate }, ...scored };
       logs.push(
-        `Gen ${i}: improved composite score ${best.score.toFixed(2)} | tog ${best.predictedTog.toFixed(2)} | softness ${best.predictedSoft.toFixed(1)}`
+        `Gen ${i}: better frontier point | score ${best.score.toFixed(2)} | tog ${best.predictedTog.toFixed(2)} | soft ${best.predictedSoft.toFixed(1)}`
       );
     } else if (i % 6 === 0) {
-      logs.push(`Gen ${i}: explored alternatives; no better frontier point found.`);
+      logs.push(`Gen ${i}: explored alternatives; retained current best candidate.`);
     }
   }
 
   const significantBoth = best.togReduction >= 35 && best.softIncrease >= 15;
+  const goalGap = Math.abs(best.predictedTog - target.targetTog) + Math.abs(best.predictedSoft - target.targetSoft) / 100;
+  const goalMatch = clamp(100 - goalGap * 65, 0, 100);
+  const confidence = clamp(55 + generations * 0.55 - goalGap * 20, 20, 98);
+  const risk = significantBoth ? 'Low' : goalMatch > 70 ? 'Medium' : 'High';
 
-  logs.push('Optimization complete. Synthesizing recommended atom-level formulation window...');
+  const id = runId();
+  setDashboard({ id, goalMatch, confidence, risk });
+
+  logs.push('Optimization complete. Synthesizing atom-level formulation window and stack recommendation...');
   engineLogEl.textContent = logs.join('\n');
 
   outcomeEl.innerHTML = [
     `<strong>Predicted tog:</strong> ${best.predictedTog.toFixed(2)} (${best.togReduction.toFixed(1)}% reduction)`,
     `<strong>Predicted softness:</strong> ${best.predictedSoft.toFixed(1)} (${best.softIncrease.toFixed(1)}% increase)`,
-    `<strong>Outcome quality:</strong> ${significantBoth ? 'Significant uplift achieved on both axes.' : 'Partial uplift; requires additional iterations.'}`,
-    `<strong>What the AI did:</strong> It searched chemistry-structure combinations, estimated thermal/mechanical behavior with a surrogate model, and selected the best Pareto-balanced candidate.`
+    `<strong>Outcome quality:</strong> ${significantBoth ? 'Significant uplift achieved on both axes.' : 'Partial uplift; run another iteration.'}`,
+    `<strong>What the AI did:</strong> Generated and scored chemistry/structure candidates, optimized for Pareto balance, and selected best-fit settings against your explicit targets.`,
+    `<strong>Expected decision:</strong> ${significantBoth ? 'Proceed to pilot roll.' : 'Continue lab optimization before pilot.'}`
   ].join('<br>');
 
   stackPlanEl.textContent = [
     'Recommended material stack (AI-proposed):',
     '',
-    'Layer 1 (0.4-0.6 mm): Soft skin with low glass-transition copolymer segments',
+    'Layer 1 (0.4-0.6 mm): Soft skin with low-Tg copolymer segments',
     `  - Segment flexibility index: ${best.settings.segmentFlex.toFixed(0)}`,
     '',
     'Layer 2 (6.5-8.0 mm): Open-cell aerogel-like elastomeric core',
@@ -169,12 +245,41 @@ function runAiLoop() {
     'Layer 4 (0.2-0.4 mm): Thermally disruptive nano-filler scrim',
     `  - Phonon-scattering filler index: ${best.settings.phononScatter.toFixed(0)}`,
     '',
-    'Expected outcome in pilot testing:',
-    `  - Tog around ${best.predictedTog.toFixed(2)}`,
-    `  - Softness around ${best.predictedSoft.toFixed(1)}`,
-    `  - Decision: ${significantBoth ? 'Proceed to pilot roll.' : 'Run another design cycle before pilot.'}`
+    `Predicted outcome: tog ${best.predictedTog.toFixed(2)} | softness ${best.predictedSoft.toFixed(1)} | risk ${risk}`
   ].join('\n');
+
+  updateHistory({
+    id,
+    time: new Date().toLocaleTimeString(),
+    tog: best.predictedTog,
+    togDrop: best.togReduction,
+    soft: best.predictedSoft,
+    softGain: best.softIncrease,
+    verdict: significantBoth ? 'Pilot-ready' : 'Needs another cycle'
+  });
+
+  runAiBtn.disabled = false;
+}
+
+function loadAggressivePreset() {
+  segmentFlexEl.value = '82';
+  crosslinkDensityEl.value = '34';
+  phononScatterEl.value = '74';
+  interfacialSlipEl.value = '73';
+  poreAnisotropyEl.value = '61';
+  aiBudgetEl.value = '36';
+
+  segmentFlexValEl.textContent = segmentFlexEl.value;
+  crosslinkValEl.textContent = crosslinkDensityEl.value;
+  phononValEl.textContent = phononScatterEl.value;
+  slipValEl.textContent = interfacialSlipEl.value;
+  poreValEl.textContent = poreAnisotropyEl.value;
 }
 
 runAiBtn.addEventListener('click', runAiLoop);
+loadPresetBtn.addEventListener('click', () => {
+  loadAggressivePreset();
+  runAiLoop();
+});
+
 runAiLoop();

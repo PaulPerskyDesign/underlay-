@@ -36,6 +36,7 @@
           <input id="targetSoft" type="number" step="1" value="86" min="1" max="100" />
         </div>
       </div>
+      <div id="validationMsg" class="validation"></div>
     </section>
 
     <section class="card">
@@ -67,23 +68,45 @@
           <input id="aiBudget" type="number" step="1" min="5" max="80" value="24" />
         </div>
       </div>
-      <button id="runAiBtn">Run AI Development Loop</button>
+      <div class="actions">
+        <button id="loadPresetBtn" class="secondary">Load aggressive preset</button>
+        <button id="runAiBtn">Run AI Development Loop</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>3) Observability Dashboard</h2>
+      <div class="grid four">
+        <div class="kpi"><span>Run ID</span><strong id="runId">--</strong></div>
+        <div class="kpi"><span>Goal Match</span><strong id="goalMatch">--</strong></div>
+        <div class="kpi"><span>Model Confidence</span><strong id="confidence">--</strong></div>
+        <div class="kpi"><span>Pilot Risk</span><strong id="risk">--</strong></div>
+      </div>
+      <label for="progressBar">Optimization progress</label>
+      <progress id="progressBar" max="100" value="0"></progress>
+      <small id="progressLabel" class="subtle">Idle</small>
     </section>
 
     <section class="grid two">
       <article class="card">
-        <h2>3) What the AI is doing</h2>
+        <h2>4) What the AI is doing</h2>
         <div id="engineLog" class="panel log" aria-live="polite"></div>
       </article>
       <article class="card">
-        <h2>4) Predicted Outcome</h2>
+        <h2>5) Predicted Outcome</h2>
         <div id="outcome" class="panel" aria-live="polite"></div>
       </article>
     </section>
 
-    <section class="card">
-      <h2>5) Recommended Material Stack</h2>
-      <pre id="stackPlan" class="panel pre"></pre>
+    <section class="grid two">
+      <article class="card">
+        <h2>6) Recommended Material Stack</h2>
+        <pre id="stackPlan" class="panel pre"></pre>
+      </article>
+      <article class="card">
+        <h2>7) Run History (latest first)</h2>
+        <div id="history" class="panel log"></div>
+      </article>
     </section>
   </main>
 
