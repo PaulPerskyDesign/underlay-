@@ -1,0 +1,102 @@
+:root {
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background: #eef3fb;
+  color: #13223b;
+}
+
+.container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 2rem;
+}
+
+.hero {
+  margin-bottom: 1rem;
+}
+
+h1,
+h2 {
+  margin: 0 0 0.65rem;
+}
+
+.subtle {
+  color: #4a5f85;
+  margin-top: 0;
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.grid.two {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #d7e1f4;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(17, 35, 64, 0.07);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 0.8rem;
+}
+
+input,
+button {
+  font: inherit;
+}
+
+input[type='number'],
+input[type='range'] {
+  width: 100%;
+}
+
+input[type='number'] {
+  border: 1px solid #bdcceb;
+  border-radius: 8px;
+  padding: 0.45rem 0.55rem;
+}
+
+button {
+  border: none;
+  border-radius: 8px;
+  background: #1e4ac9;
+  color: #fff;
+  padding: 0.6rem 0.85rem;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #153894;
+}
+
+.panel {
+  background: #f6f9ff;
+  border: 1px dashed #9cb1de;
+  border-radius: 8px;
+  padding: 0.75rem;
+  min-height: 120px;
+}
+
+.panel.log {
+  white-space: pre-wrap;
+  line-height: 1.4;
+}
+
+.panel.pre {
+  white-space: pre-wrap;
+  line-height: 1.45;
+}

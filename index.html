@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Underlay AI Material Studio</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="container">
+    <header class="hero">
+      <h1>Underlay AI Material Studio</h1>
+      <p>
+        AI-assisted concept generation for a <strong>significant uplift</strong> in both
+        <strong>lower tog</strong> and <strong>higher softness</strong>, with atom-level material controls.
+      </p>
+    </header>
+
+    <section class="card">
+      <h2>1) Product Objectives</h2>
+      <div class="grid two">
+        <div class="field">
+          <label for="baselineTog">Baseline Tog</label>
+          <input id="baselineTog" type="number" step="0.1" value="1.8" min="0.2" />
+        </div>
+        <div class="field">
+          <label for="targetTog">Target Tog</label>
+          <input id="targetTog" type="number" step="0.1" value="0.9" min="0.1" />
+        </div>
+        <div class="field">
+          <label for="baselineSoft">Baseline Softness (0-100)</label>
+          <input id="baselineSoft" type="number" step="1" value="72" min="1" max="100" />
+        </div>
+        <div class="field">
+          <label for="targetSoft">Target Softness (0-100)</label>
+          <input id="targetSoft" type="number" step="1" value="86" min="1" max="100" />
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>2) Atom-Level Design Controls</h2>
+      <p class="subtle">These knobs emulate chemistry and structure choices the AI uses during optimization.</p>
+      <div class="grid two">
+        <div class="field">
+          <label for="segmentFlex">Polymer Segment Flexibility: <span id="segmentFlexVal">72</span></label>
+          <input id="segmentFlex" type="range" min="0" max="100" value="72" />
+        </div>
+        <div class="field">
+          <label for="crosslinkDensity">Crosslink Density: <span id="crosslinkVal">41</span></label>
+          <input id="crosslinkDensity" type="range" min="0" max="100" value="41" />
+        </div>
+        <div class="field">
+          <label for="phononScatter">Phonon-Scattering Filler Fraction: <span id="phononVal">58</span></label>
+          <input id="phononScatter" type="range" min="0" max="100" value="58" />
+        </div>
+        <div class="field">
+          <label for="interfacialSlip">Interfacial Slip Tuning: <span id="slipVal">65</span></label>
+          <input id="interfacialSlip" type="range" min="0" max="100" value="65" />
+        </div>
+        <div class="field">
+          <label for="poreAnisotropy">Pore Anisotropy: <span id="poreVal">52</span></label>
+          <input id="poreAnisotropy" type="range" min="0" max="100" value="52" />
+        </div>
+        <div class="field">
+          <label for="aiBudget">AI Search Budget (generations)</label>
+          <input id="aiBudget" type="number" step="1" min="5" max="80" value="24" />
+        </div>
+      </div>
+      <button id="runAiBtn">Run AI Development Loop</button>
+    </section>
+
+    <section class="grid two">
+      <article class="card">
+        <h2>3) What the AI is doing</h2>
+        <div id="engineLog" class="panel log" aria-live="polite"></div>
+      </article>
+      <article class="card">
+        <h2>4) Predicted Outcome</h2>
+        <div id="outcome" class="panel" aria-live="polite"></div>
+      </article>
+    </section>
+
+    <section class="card">
+      <h2>5) Recommended Material Stack</h2>
+      <pre id="stackPlan" class="panel pre"></pre>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
