@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Underlay Concept Studio</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>Underlay Concept Studio</h1>
+      <p>Design for <strong>lower tog</strong> and <strong>higher softness</strong> with measurable uplift targets.</p>
+    </header>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Performance Target Builder</h2>
+        <div class="field">
+          <label for="baselineTog">Baseline Tog</label>
+          <input id="baselineTog" type="number" step="0.1" value="1.8" min="0.1" />
+        </div>
+        <div class="field">
+          <label for="baselineSoft">Baseline Softness (0-100)</label>
+          <input id="baselineSoft" type="number" step="1" value="72" min="1" max="100" />
+        </div>
+
+        <div class="field">
+          <label for="targetTog">Target Tog</label>
+          <input id="targetTog" type="number" step="0.1" value="1.0" min="0.1" />
+        </div>
+        <div class="field">
+          <label for="targetSoft">Target Softness (0-100)</label>
+          <input id="targetSoft" type="number" step="1" value="84" min="1" max="100" />
+        </div>
+
+        <button id="evaluateBtn">Evaluate Concept</button>
+
+        <div id="results" class="results" aria-live="polite"></div>
+      </article>
+
+      <article class="card">
+        <h2>Material Stack Planner</h2>
+        <div class="field">
+          <label for="core">Core Material</label>
+          <select id="core">
+            <option>Open-cell aerogel PU/PUA</option>
+            <option>Conventional PU foam</option>
+            <option>Rebond rubber</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="lattice">Comfort Architecture</label>
+          <select id="lattice">
+            <option>Graded TPE micro-lattice</option>
+            <option>Uniform foam-only</option>
+            <option>Single-layer felt</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="density">Target Density (kg/m³): <span id="densityValue">55</span></label>
+          <input id="density" type="range" min="35" max="95" step="1" value="55" />
+        </div>
+
+        <button id="recommendBtn">Generate Recommendation</button>
+        <pre id="recommendation" class="recommendation"></pre>
+      </article>
+    </section>
+
+    <section class="card">
+      <h2>90-Day Program Snapshot</h2>
+      <ol>
+        <li><strong>Weeks 1-3:</strong> Formulation DOE + pore architecture screening.</li>
+        <li><strong>Weeks 4-6:</strong> Build P1-P6 prototypes and test tog/softness.</li>
+        <li><strong>Weeks 7-9:</strong> Fatigue and compression-set refinement.</li>
+        <li><strong>Weeks 10-12:</strong> Pilot roll and go/no-go decision.</li>
+      </ol>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
